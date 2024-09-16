@@ -6,8 +6,9 @@ Created on Mon Sep 9 09:38:31 2024
 
 @author: Freja
 """
-import numpy
+import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 
 def flow_angle(V0, omega, r, a, a_prime):
@@ -175,7 +176,7 @@ def interpol_beta(interpol_r):
 
  
 
-def calc_loads(teta,tip_s_ratio,r):
+def calc_loads(teta,tip_s_ratio,r,V0):
     """
     Calculate the power coefficient:
         
@@ -197,7 +198,7 @@ def calc_loads(teta,tip_s_ratio,r):
     R = 89.17                   # Full blade ratio         (m)
     B = 3                       # Number of blades
     rho = 1.225                 # Densit of air            (kg/m^3)
-    V0 = 10  
+    #V0 = 10  
     omega = tip_s_ratio*V0/R                 # Example wind speed       (m/s)
     #omega = 2.61                    # Example angular velocity (rad/s)
     #teta = -3.0                 # Global pitch angle       (degree)
@@ -254,7 +255,7 @@ def calc_loads(teta,tip_s_ratio,r):
         
         # If both errors are below the threshold, stop the loop
         if error_a < epsilon and error_a_prime < epsilon:
-            print(f"Converged after {iteration} iterations.")
+            #print(f"Converged after {iteration} iterations.")
             break
         
         iteration += 1
@@ -270,9 +271,47 @@ def calc_loads(teta,tip_s_ratio,r):
 
     return P_n, P_t
 
-pn,pt = calc_loads(-4,5,24.5)
-print(pt,pn)
+if __name__ == "__main__":
+    V0 = 10
+    R = 89.17 # This should probably be done in some nice way where it isn't defined in both function and main
+    B = 3 # This too
+    th_step = 1
+    th_max = 3+th_step
+    ti_step = 1
+    ti_max = 10+ti_step
+    r_step = 1
+    theta = np.arange(-4, th_max, th_step)
+    tip_s_ratio = np.arange(5, ti_max, ti_step)
+    r = np.arange(3, 90, r_step)
 
+    Cp_array = np.zeros((len(theta), len(tip_s_ratio)))
+    Ct_array = np.zeros((len(theta), len(tip_s_ratio)))
+
+    Cp_coords = np.zeros((len(theta), len(tip_s_ratio), 2))
+    Ct_coords = np.zeros((len(theta), len(tip_s_ratio), 2))
+
+    for th_count, th in enumerate(theta):
+        for ti_count, ti in enumerate(tip_s_ratio):
+            omega = ti*V0/R
+            P_sum = 0
+            T_sum = 0
+            for ra in r:
+                # Calculating loads based on the given parameters
+                P_n, P_t = calc_loads(th, ti, ra, V0)
+                P_sum += omega*B*P_t*ra*r_step
+                T_sum += B * P_n * r_step
+            Cp_array[th_count, ti_count] = P_sum
+            Ct_array[th_count, ti_count] = T_sum
+            print(f"Location: {th_count, ti_count} out of {len(theta), len(tip_s_ratio)}")
+
+    fig,ax = plt.subplots()
+    CS = ax.contour(tip_s_ratio, theta, Cp_array)
+            
+
+
+
+
+                
     
     
     
