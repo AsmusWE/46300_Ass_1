@@ -181,7 +181,7 @@ max_iterations = 1000  # Maximum number of iterations to prevent infinite loops
 
 # Define known parameters (you need to specify these values)
 r = 24.5                    # Radius                   (m)
-c = 0.5                     # cord length              (m)
+c = 1.5                     # cord length              (m)
 
 R = 31                      # Full blade ratio         (m)
 B = 3                       # Number of blades
@@ -252,6 +252,7 @@ else:
 print(f"a = {a:.3f}, a_prime = {a_prime:.3f}")
 
 
+
 # Calculate the relative wind speed
 Vrel = V_rel(omega, r, V0)
 
@@ -261,4 +262,4 @@ pt = p_t(rho, Vrel, c, Ct)
 
 print(f"pn = {pn:.3f}, pt = {pt:.3f}")
     
-    
+
