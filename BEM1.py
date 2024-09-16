@@ -145,6 +145,31 @@ def V_rel (omega, r, V_0):
     
     return V_rel
 
+def p_n (rho, Vrel, c, Cn):
+    """
+    Calculate the Normal force per unit length
+    
+    p_n = normal force per meter
+    rho = density of the air
+    c = cord length
+    C_n = Normal force coefficient
+    """
+    p_n = 1/2 * rho * Vrel**2 * c * Cn
+    
+    return p_n
+
+def p_t (rho, Vrel, c, Ct):
+    """
+    Calculate the tangential force per unit length
+    
+    p_t = tangential force per meter
+    rho = density of the air
+    c = cord length
+    C_t = tangential force coefficient
+    """
+    p_t = 1/2 * rho * Vrel**2 * c * Ct
+    
+    return p_t
 
 
 #Now the while loop calculating the error in a^n and a^n-1 and the same for a_prime
@@ -227,6 +252,13 @@ else:
 print(f"a = {a:.3f}, a_prime = {a_prime:.3f}")
 
 
-    
+# Calculate the relative wind speed
+Vrel = V_rel(omega, r, V0)
+
+# Calculate the normal and tangential force per meter
+pn = p_n(rho, Vrel, c, Cn)
+pt = p_t(rho, Vrel, c, Ct) 
+
+print(f"pn = {pn:.3f}, pt = {pt:.3f}")
     
     
