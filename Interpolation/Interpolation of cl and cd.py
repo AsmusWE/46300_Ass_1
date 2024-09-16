@@ -9,8 +9,8 @@ import os
 import numpy as np
 
 
-# Define the correct directory where your files are located
-file_directory = r'C:\Users\freja\OneDrive\Dokumenter\Freja Skole\1. Semester\43600 mandag+torsdag\Assignment 1\interpolate'
+# Directory containing the files (current working directory)
+current_dir = os.getcwd()  # gets the path of the folder where the code is run
 
 # List of files
 files = ['FFA-W3-2411.txt', 'FFA-W3-301.txt', 'FFA-W3-360.txt', 'FFA-W3-480.txt', 'FFA-W3-600.txt', 'cylinder.txt']
@@ -24,14 +24,8 @@ aoa_tab=np.zeros([105,])
 
 # Read in the tables once at startup of simulation
 for i in range(np.size(files)):
-    # Create the full file path
-    file_path = os.path.join(file_directory, files[i])
-    
-    # Ensure the file exists
-    if os.path.exists(file_path):
-        aoa_tab[:], cl_tab[:,i], cd_tab[:,i], cm_tab[:,i] = np.loadtxt(file_path, skiprows=0).T
-    else:
-        print(f"File {files[i]} not found at {file_path}")
+    file_path = os.path.join(current_dir, files[i])  # Create the full file path
+    aoa_tab[:], cl_tab[:,i], cd_tab[:,i], cm_tab[:,i] = np.loadtxt(file_path, skiprows=0).T
 
 
 # Thickness of the airfoils considered
