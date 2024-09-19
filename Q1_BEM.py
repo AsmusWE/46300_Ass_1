@@ -258,7 +258,10 @@ def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
         if a_old < 1/3:
             a_temp = dCT / (4 * (1 - a_old))
         else:
-            a_temp = dCT / (4 * (1 - 0.25 * (5 - 3 * a_old) * a_old))
+            if madsen == 0 :
+                a_temp = dCT / (4 * (1 - 0.25 * (5 - 3 * a_old) * a_old))
+            else:
+                a_temp = 0.246 * dCT + 0.0586 * dCT**2 + 0.0883 * dCT**3
         
         # Apply under-relaxation
         a = f * a_temp + (1 - f) * a_old
@@ -336,6 +339,9 @@ if __name__ == "__main__":
     theta = np.arange(-4, th_max, th_step)
     tip_s_ratio = np.arange(5, ti_max, ti_step)
     r = np.arange(3, 90, r_step)
+
+    #Variable deciding whether or not to use the madsen way or the Glauert way
+    madsen = 1
     
     # Data for going from loads to cp/cn
     rho = 1.225
