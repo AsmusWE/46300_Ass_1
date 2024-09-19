@@ -194,6 +194,8 @@ C_l = 0.5                   # Lift coefficient
 C_d = 0.01                  # Drag coefficient 
 f = 0.1                     # Under relaxation needed
 
+#Variable deciding whether or not to use the madsen way or the Glauert way
+madsen = 1
 
 # Iteration loop
 iteration = 0
@@ -226,7 +228,10 @@ while iteration < max_iterations:
     if a_old < 1/3:
         a_temp = dCT / (4 * (1 - a_old))
     else:
-        a_temp = dCT / (4 * (1 - 0.25 * (5 - 3 * a_old) * a_old))
+        if madsen == 0 :
+            a_temp = dCT / (4 * (1 - 0.25 * (5 - 3 * a_old) * a_old))
+        else:
+            a_temp = 0.246 * dCT + 0.0586 * dCT**2 + 0.0883 * dCT**3
     
     # Apply under-relaxation
     a = f * a_temp + (1 - f) * a_old
