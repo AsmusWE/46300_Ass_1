@@ -175,7 +175,19 @@ def interpol_beta(interpol_r):
                 # Linear interpolation
                 return beta[i] + (beta[i + 1] - beta[i]) * (interpol_r - r[i]) / (r[i + 1] - r[i])
 
- 
+def interpol_thickness(interpol_r):
+    tc = [100.00, 86.05, 61.10, 43.04, 32.42, 27.81, 25.32, 24.26, 24.10, 24.10, 24.10, 24.10, 24.10, 24.10, 24.10, 24.10, 24.10, 24.10]
+    r = [2.80, 11.00, 16.87, 22.96, 32.31, 41.57, 50.41, 58.53, 65.75, 71.97, 77.19, 78.71, 80.14, 82.71, 84.93, 86.83, 88.45, 89.17]
+
+    if interpol_r <= r[0]:
+        return tc[0]
+    elif interpol_r >= r[-1]:
+        return tc[-1]
+    else:
+        for i in range(len(r) - 1):
+            if r[i] <= interpol_r <= r[i + 1]:
+                # Linear interpolation
+                return tc[i] + (tc[i + 1] - tc[i]) * (interpol_r - r[i]) / (r[i + 1] - r[i])
 
 def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
     """
@@ -210,6 +222,7 @@ def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
 
     beta = interpol_beta(r)
     c = interpol_c(r)
+    tc = interpol_thickness(r)
     # Iteration loop
     iteration = 0
     while iteration < max_iterations:
@@ -225,7 +238,7 @@ def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
         alpha_local = angle_of_attack(phi_deg, teta, beta)
 
         # Calculate cl, cd and cm
-        C_l, C_d, C_m = InterpolationOfCd.force_coeffs_10MW(alpha_local, c, aoa_tab, cl_tab, cd_tab, cm_tab)
+        C_l, C_d, C_m = InterpolationOfCd.force_coeffs_10MW(alpha_local, tc, aoa_tab, cl_tab, cd_tab, cm_tab)
         
         # Calculate the solidity
         sigma = solidity(c, B, r)
@@ -353,13 +366,29 @@ if __name__ == "__main__":
     Cp_array = Cp_array / (0.5 * rho * V0**3 * A)
     Ct_array = Ct_array / (0.5 * rho * V0**2 * A)
 
-    #fig,ax = plt.subplots(2,1)
-    CSp = plt.contour(tip_s_ratio, theta, Cp_array)
-    #ax.clabel(CSp, inline=True, fontsize=10)
+    plt.figure()
+    plt.contourf(tip_s_ratio, theta, Cp_array, cmap='viridis')
+    plt.colorbar(label='Cp')
+    plt.xlabel('Tip Speed Ratio')
+    plt.ylabel('Pitch Angle (degrees)')
+    plt.title('Power Coefficient (Cp) Contour')
     plt.show()
-    CSt = plt.contour(tip_s_ratio, theta, Ct_array)
-    #ax.clabel(CSt, inline=True, fontsize=10)
+
+    plt.figure()
+    plt.contourf(tip_s_ratio, theta, Ct_array, cmap='viridis')
+    plt.colorbar(label='Ct')
+    plt.xlabel('Tip Speed Ratio')
+    plt.ylabel('Pitch Angle (degrees)')
+    plt.title('Thrust Coefficient (Ct) Contour')
     plt.show()
+    # Find the indices of the maximum value in Cp_array
+    max_index = np.unravel_index(np.argmax(Cp_array, axis=None), Cp_array.shape)
+
+    # Get the corresponding theta and tip_s_ratio values
+    max_theta = theta[max_index[0]]
+    max_tip_s_ratio = tip_s_ratio[max_index[1]]
+
+    print(f"The highest Cp value is at theta = {max_theta} degrees and tip speed ratio = {max_tip_s_ratio}")
             
 
 
