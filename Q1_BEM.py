@@ -9,7 +9,8 @@ Created on Mon Sep 9 09:38:31 2024
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-
+from Interpolation import InterpolationOfCd
+import os
 
 def flow_angle(V0, omega, r, a, a_prime):
     """
@@ -176,7 +177,7 @@ def interpol_beta(interpol_r):
 
  
 
-def calc_loads(teta,tip_s_ratio,r,V0):
+def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
     """
     Calculate the power coefficient:
         
@@ -203,8 +204,8 @@ def calc_loads(teta,tip_s_ratio,r,V0):
     #omega = 2.61                    # Example angular velocity (rad/s)
     #teta = -3.0                 # Global pitch angle       (degree)
     #beta = 2.0                  # Twist angle              (radians)
-    C_l = 0.5                   # Lift coefficient 
-    C_d = 0.01                  # Drag coefficient 
+    #C_l = 0.5                   # Lift coefficient 
+    #C_d = 0.01                  # Drag coefficient 
     f = 0.1                     # Under relaxation needed
 
     beta = interpol_beta(r)
@@ -218,9 +219,13 @@ def calc_loads(teta,tip_s_ratio,r,V0):
         
         # Calculate the flow angle phi
         phi = flow_angle(V0, omega, r, a, a_prime)
+        phi_deg = phi*180/math.pi
         
         # Calculate the angle of attack
-        alpha_local = angle_of_attack(phi, teta, beta)
+        alpha_local = angle_of_attack(phi_deg, teta, beta)
+
+        # Calculate cl, cd and cm
+        C_l, C_d, C_m = InterpolationOfCd.force_coeffs_10MW(alpha_local, c, aoa_tab, cl_tab, cd_tab, cm_tab)
         
         # Calculate the solidity
         sigma = solidity(c, B, r)
@@ -269,9 +274,43 @@ def calc_loads(teta,tip_s_ratio,r,V0):
     P_n = 1/2*rho*V_rel**2*c*Cn
     P_t = 1/2*rho*V_rel**2*c*Ct
 
-    return P_n, P_t
+    return P_n, P_t, a
 
 if __name__ == "__main__":
+
+    # START OF TERRIBLE IMPORTED INTERPOLATE PART
+    current_dir = os.getcwd()  # gets the path of the folder where the code is run
+
+    # List of files
+    files = ['FFA-W3-2411.txt', 'FFA-W3-301.txt', 'FFA-W3-360.txt', 'FFA-W3-480.txt', 'FFA-W3-600.txt', 'cylinder.txt']
+
+    # Initialize the arrays (assuming you already know the sizes of aoa_tab, cl_tab, cd_tab, cm_tab)
+    #Initializing tables    
+    cl_tab=np.zeros([105,6])
+    cd_tab=np.zeros([105,6])
+    cm_tab=np.zeros([105,6])
+    aoa_tab=np.zeros([105,])
+
+    # Read in the tables once at startup of simulation
+    for i in range(np.size(files)):
+        file_path = os.path.join(current_dir, files[i])  # Create the full file path
+        aoa_tab[:], cl_tab[:,i], cd_tab[:,i], cm_tab[:,i] = np.loadtxt(file_path, skiprows=0).T
+
+
+    # Thickness of the airfoils considered
+    # NOTE THAT IN PYTHON THE INTERPOLATION REQUIRES THAT THE VALUES INCREASE IN THE VECTOR!
+
+    thick_prof=np.zeros(6)
+    thick_prof[0]=24.1;
+    thick_prof[1]=30.1;
+    thick_prof[2]=36;
+    thick_prof[3]=48;
+    thick_prof[4]=60;
+    thick_prof[5]=100;
+
+    # END OF TERRIBLE IMPORTED INTERPOLATE PART
+
+
     V0 = 10
     R = 89.17 # This should probably be done in some nice way where it isn't defined in both function and main
     B = 3 # This too
@@ -280,9 +319,15 @@ if __name__ == "__main__":
     ti_step = 1
     ti_max = 10+ti_step
     r_step = 1
+    r_max = 89.17+r_step-1
     theta = np.arange(-4, th_max, th_step)
     tip_s_ratio = np.arange(5, ti_max, ti_step)
     r = np.arange(3, 90, r_step)
+    
+    # Data for going from loads to cp/cn
+    rho = 1.225
+    V0 = 10
+    A = R**2 * math.pi
 
     Cp_array = np.zeros((len(theta), len(tip_s_ratio)))
     Ct_array = np.zeros((len(theta), len(tip_s_ratio)))
@@ -297,15 +342,24 @@ if __name__ == "__main__":
             T_sum = 0
             for ra in r:
                 # Calculating loads based on the given parameters
-                P_n, P_t = calc_loads(th, ti, ra, V0)
+                P_n, P_t, a = calc_loads(th, ti, ra, V0, cl_tab, cd_tab, cm_tab, aoa_tab)
                 P_sum += omega*B*P_t*ra*r_step
                 T_sum += B * P_n * r_step
             Cp_array[th_count, ti_count] = P_sum
             Ct_array[th_count, ti_count] = T_sum
             print(f"Location: {th_count, ti_count} out of {len(theta), len(tip_s_ratio)}")
 
-    fig,ax = plt.subplots()
-    CS = ax.contour(tip_s_ratio, theta, Cp_array)
+    # Converting to Cp and Ct
+    Cp_array = Cp_array / (0.5 * rho * V0**3 * A)
+    Ct_array = Ct_array / (0.5 * rho * V0**2 * A)
+
+    #fig,ax = plt.subplots(2,1)
+    CSp = plt.contour(tip_s_ratio, theta, Cp_array)
+    #ax.clabel(CSp, inline=True, fontsize=10)
+    plt.show()
+    CSt = plt.contour(tip_s_ratio, theta, Ct_array)
+    #ax.clabel(CSt, inline=True, fontsize=10)
+    plt.show()
             
 
 
