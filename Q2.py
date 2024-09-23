@@ -18,8 +18,8 @@ P_rated = 10.64     # MW
 V_in = 4            # m/s
 V_out = 25          # m/s
 rho = 1.225         # kg/m^3
-Cp_max = 3          # - INSERT FROM Q1
-tip_speed_max = 3   # - INSERT FROM Q1
+Cp_max = 0.46599649          # - INSERT FROM Q1
+tip_speed_max = 8   # - INSERT FROM Q1
 
 
 

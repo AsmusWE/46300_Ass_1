@@ -189,7 +189,7 @@ def interpol_thickness(interpol_r):
                 # Linear interpolation
                 return tc[i] + (tc[i + 1] - tc[i]) * (interpol_r - r[i]) / (r[i + 1] - r[i])
 
-def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
+def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab, madsen):
     """
     Calculate the power coefficient:
         
@@ -200,7 +200,7 @@ def calc_loads(teta,tip_s_ratio,r,V0, cl_tab, cd_tab, cm_tab, aoa_tab):
     # Initialize variables
     a = 0
     a_prime = 0
-    epsilon = 1e-10  # Set a small threshold for convergence
+    epsilon = 1e-5  # Set a small threshold for convergence
     max_iterations = 1000  # Maximum number of iterations to prevent infinite loops
 
     # Define known parameters
@@ -341,7 +341,7 @@ if __name__ == "__main__":
     r = np.arange(3, 90, r_step)
 
     #Variable deciding whether or not to use the madsen way or the Glauert way
-    madsen = 1
+    madsen = 0
     
     # Data for going from loads to cp/cn
     rho = 1.225
@@ -361,7 +361,7 @@ if __name__ == "__main__":
             T_sum = 0
             for ra in r:
                 # Calculating loads based on the given parameters
-                P_n, P_t, a = calc_loads(th, ti, ra, V0, cl_tab, cd_tab, cm_tab, aoa_tab)
+                P_n, P_t, a = calc_loads(th, ti, ra, V0, cl_tab, cd_tab, cm_tab, aoa_tab, madsen)
                 P_sum += omega*B*P_t*ra*r_step
                 T_sum += B * P_n * r_step
             Cp_array[th_count, ti_count] = P_sum
