@@ -24,7 +24,7 @@ tip_speed_max = 8   # - INSERT FROM Q1
 
 
 # Initialize arrays for wind speeds and power output
-V_range = np.linspace(V_in, V_out, 100)  # Wind speeds from V_in to V_out
+V_range = np.linspace(V_in, V_out, 500)  # Wind speeds from V_in to V_out
 P = np.zeros_like(V_range)               # Power array to store calculated power
 omega = np.zeros_like(V_range)           # Omega array to store angular speed
 V_rated = None                           # Variable to store wind speed at rated power

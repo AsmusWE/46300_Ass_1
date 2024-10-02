@@ -1,4 +1,5 @@
 from Q1_BEM import *
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
@@ -51,9 +52,11 @@ if __name__ == "__main__":
 
     ti = 8 # Tip speed ratio
     P_max = 10.64*10**6
-    omega_max = 10000 # Need something here
-    V0_list = np.arange(10,26)
-    Theta_list = np.arange(0,len(V0_list)-1,dtype=float)
+    #P_max = P_max*10
+    omega_max = 1.04 
+    V0_list = np.arange(10,26,0.1)
+    #V0_list = [11.64,11.64]
+    Theta_list = np.arange(0,len(V0_list),dtype=float)
     th = 0
     th_step = 0.1
 
@@ -73,6 +76,7 @@ if __name__ == "__main__":
                 P_sum += omega*B*P_t*ra*r_step
                 T_sum += B * P_n * r_step
             P = P_sum
+            
             if P>P_max:
                 th += th_step
                 loops += 1
@@ -81,4 +85,13 @@ if __name__ == "__main__":
                 Theta_list[count-1] = float(th)
                 print(f'Count: {count}, out of {len(V0_list)}')
                 break
+    
+    plt.figure()
+    plt.plot(V0_list, Theta_list, label='Theta vs V0')
+    plt.xlabel('V0 (m/s)')
+    plt.ylabel('Theta (degrees)')
+    plt.title('Theta vs V0')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
