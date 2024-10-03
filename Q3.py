@@ -58,7 +58,7 @@ if __name__ == "__main__":
     #V0_list = [11.64,11.64]
     Theta_list = np.arange(0,len(V0_list),dtype=float)
     th = 0
-    th_step = 0.1
+    th_step = 0.05
 
     madsen = 0
 
@@ -80,10 +80,10 @@ if __name__ == "__main__":
             if P>P_max:
                 th += th_step
                 loops += 1
-                print(f'Loop: {loops}, th: {th}, p: {P}')
+                print(f'Loop: {loops+1}, th: {th}, p: {P}')
             else:
-                Theta_list[count-1] = float(th)
-                print(f'Count: {count}, out of {len(V0_list)}')
+                Theta_list[count] = float(th)
+                print(f'Count: {count+1}, out of {len(V0_list)}')
                 break
     
     plt.figure()
