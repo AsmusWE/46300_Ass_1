@@ -4,10 +4,42 @@ Created on Tue Oct  1 08:25:12 2024
 
 @author: freja
 """
+from Q1_BEM import *
 import numpy as np
 import math
 from scipy.optimize import minimize
 
+# START OF TERRIBLE IMPORTED INTERPOLATE PART
+current_dir = os.getcwd()  # gets the path of the folder where the code is run
+
+# List of files
+files = ['FFA-W3-2411.txt', 'FFA-W3-301.txt', 'FFA-W3-360.txt', 'FFA-W3-480.txt', 'FFA-W3-600.txt', 'cylinder.txt']
+
+# Initialize the arrays (assuming you already know the sizes of aoa_tab, cl_tab, cd_tab, cm_tab)
+#Initializing tables    
+cl_tab=np.zeros([105,6])
+cd_tab=np.zeros([105,6])
+cm_tab=np.zeros([105,6])
+aoa_tab=np.zeros([105,])
+
+# Read in the tables once at startup of simulation
+for i in range(np.size(files)):
+    file_path = os.path.join(current_dir, files[i])  # Create the full file path
+    aoa_tab[:], cl_tab[:,i], cd_tab[:,i], cm_tab[:,i] = np.loadtxt(file_path, skiprows=0).T
+
+
+# Thickness of the airfoils considered
+# NOTE THAT IN PYTHON THE INTERPOLATION REQUIRES THAT THE VALUES INCREASE IN THE VECTOR!
+
+thick_prof=np.zeros(6)
+thick_prof[0]=24.1;
+thick_prof[1]=30.1;
+thick_prof[2]=36;
+thick_prof[3]=48;
+thick_prof[4]=60;
+thick_prof[5]=100;
+
+# END OF TERRIBLE IMPORTED INTERPOLATE PART
 
 def flow_angle(V0, omega, r, a, a_prime):
     """
@@ -187,11 +219,11 @@ A = math.pi * (R**2 - r**2)         # Swept rotor area
 Ct = 0 
 sigma = 0
 F = 0
-teta = 0
+phi = 0
                
 a = 0
 a_prime = 0
-epsilon = 1e-12  # Set a small threshold for convergence
+epsilon = 1e-6  # Set a small threshold for convergence
 max_iterations = 1000  # Maximum number of iterations to prevent infinite loops
 
 # Initialize variables
@@ -200,13 +232,13 @@ best_c = None           # To store the c value corresponding to the max Cp
 best_teta = None       # To store the angle corresponding to the max Cp
 
 # Define the range and step size for c and angle
-c_min = 0.1
+c_min = 2.3
 c_max = 3
-c_step = 0.1
+c_step = 0.01
 
-teta_min = 0.000001  # Adjust as per your range of angles
-teta_max = 90
-teta_step = 0.1
+teta_min = 1 # Adjust as per your range of angles
+teta_max = 10
+teta_step = 0.01
 
 # Loop through c values from c_min to c_max
 c = c_min
@@ -279,20 +311,8 @@ while c <= c_max:
             iteration += 1
         else:
             print("Maximum iterations reached without convergence.")
-        
-        # Compute V_rel
-        V_rel = math.sqrt((omega*r+a_prime*omega*r)**2 + (V0-a*V0)**2)
-        
-        # Compute loads
-        P_n = 1/2*rho*V_rel**2*c*Cn
-        P_t = 1/2*rho*V_rel**2*c*Ct
-        
-        P_sum = omega*B*P_t*r
-        
-        # Converting to Cp and Ct
-        #Cp = P_sum / (0.5 * rho * V0**3 * A)
 
-        Cp = r/R * (tip_speed * (1-a)**2 *Ct * sigma) / (F * math.sin(teta) ** 2)  # Call your function to calculate Cp based on c and angle
+        Cp = (r/R * (tip_speed * (1-a)**2 *Ct * sigma)) / (F * math.sin(phi) ** 2)  # Call your function to calculate Cp based on c and angle
         
         # Check if this Cp is larger than the previous maximum Cp
         if Cp > max_Cp:
@@ -305,7 +325,7 @@ while c <= c_max:
     c += c_step  # Increment c by the step size
 
 # Print or return the results
-print(f"The maximum Cp is {max_Cp}, and it occurs at c = {best_c} and angle = {best_teta}")
+print(f"The maximum Cp is {max_Cp:.4f}, and it occurs at c = {best_c:.4f} and angle = {best_teta:.4f}")
 
 
 

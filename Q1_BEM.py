@@ -12,6 +12,39 @@ import matplotlib.pyplot as plt
 from Interpolation import InterpolationOfCd
 import os
 
+
+# START OF TERRIBLE IMPORTED INTERPOLATE PART
+current_dir = os.getcwd()  # gets the path of the folder where the code is run
+
+# List of files
+files = ['FFA-W3-2411.txt', 'FFA-W3-301.txt', 'FFA-W3-360.txt', 'FFA-W3-480.txt', 'FFA-W3-600.txt', 'cylinder.txt']
+
+# Initialize the arrays (assuming you already know the sizes of aoa_tab, cl_tab, cd_tab, cm_tab)
+#Initializing tables    
+cl_tab=np.zeros([105,6])
+cd_tab=np.zeros([105,6])
+cm_tab=np.zeros([105,6])
+aoa_tab=np.zeros([105,])
+
+# Read in the tables once at startup of simulation
+for i in range(np.size(files)):
+    file_path = os.path.join(current_dir, files[i])  # Create the full file path
+    aoa_tab[:], cl_tab[:,i], cd_tab[:,i], cm_tab[:,i] = np.loadtxt(file_path, skiprows=0).T
+
+
+# Thickness of the airfoils considered
+# NOTE THAT IN PYTHON THE INTERPOLATION REQUIRES THAT THE VALUES INCREASE IN THE VECTOR!
+
+thick_prof=np.zeros(6)
+thick_prof[0]=24.1;
+thick_prof[1]=30.1;
+thick_prof[2]=36;
+thick_prof[3]=48;
+thick_prof[4]=60;
+thick_prof[5]=100;
+
+# END OF TERRIBLE IMPORTED INTERPOLATE PART
+
 def flow_angle(V0, omega, r, a, a_prime):
     """
     Calculate the flow angle:
@@ -330,7 +363,7 @@ if __name__ == "__main__":
     V0 = 10
     R = 89.17 # This should probably be done in some nice way where it isn't defined in both function and main
     B = 3 # This too
-    th_step = 1
+    th_step = 0.2
     th_max = 3+th_step
     ti_step = 1
     ti_max = 10+ti_step
@@ -371,20 +404,20 @@ if __name__ == "__main__":
     # Converting to Cp and Ct
     Cp_array = Cp_array / (0.5 * rho * V0**3 * A)
     Ct_array = Ct_array / (0.5 * rho * V0**2 * A)
-
+#%%
     plt.figure()
-    plt.contourf(tip_s_ratio, theta, Cp_array, cmap='viridis')
+    plt.contourf(tip_s_ratio, theta, Cp_array, levels = 20,cmap='viridis')
     plt.colorbar(label='Cp')
     plt.xlabel('Tip Speed Ratio')
-    plt.ylabel('Pitch Angle (degrees)')
+    plt.ylabel('Pitch Angle [degrees]')
     plt.title('Power Coefficient (Cp) Contour')
     plt.show()
 
     plt.figure()
-    plt.contourf(tip_s_ratio, theta, Ct_array, cmap='viridis')
-    plt.colorbar(label='Ct')
+    plt.contourf(tip_s_ratio, theta, Ct_array, levels = 20, cmap='viridis')
+    plt.colorbar(label='CT')
     plt.xlabel('Tip Speed Ratio')
-    plt.ylabel('Pitch Angle (degrees)')
+    plt.ylabel('Pitch Angle  [degrees]')
     plt.title('Thrust Coefficient (Ct) Contour')
     plt.show()
     # Find the indices of the maximum value in Cp_array
