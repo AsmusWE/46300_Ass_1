@@ -206,19 +206,18 @@ def p_t (rho, Vrel, c, Ct):
 r = 80.14                   # radius at which we're optimizing (m)
 R = 89.17                   # total blade length (m)
 B = 3                       # number of blades
-V0 = 8.0                    # free-stream wind speed (m/s)
+V0 = 8                   # free-stream wind speed (m/s)
 tip_speed = 8               # tip speed ratio (lambda)
 omega = V0 * tip_speed / r  # calculate omega using lambda = 8
 beta = -2.28                # beta at the given radius
 tc = 24.10                  # thickness cord ratio
 f = 0.1                     # Under relaxation needed
 rho = 1.225                 # Densit of air (kg/m^3)
-A = math.pi * (R**2 - r**2)         # Swept rotor area
+A = math.pi * (R**2 - r**2) # Swept rotor area
 
 # Initialize variables for the BEM loop
 Ct = 0 
 sigma = 0
-F = 0
 phi = 0
                
 a = 0
@@ -227,17 +226,17 @@ epsilon = 1e-6  # Set a small threshold for convergence
 max_iterations = 1000  # Maximum number of iterations to prevent infinite loops
 
 # Initialize variables
-max_Cp = float('-inf')  # To store the maximum Cp found
+max_Cp = 0  # To store the maximum Cp found
 best_c = None           # To store the c value corresponding to the max Cp
 best_teta = None       # To store the angle corresponding to the max Cp
 
 # Define the range and step size for c and angle
-c_min = 2.3
-c_max = 3
+c_min = 0.1
+c_max = 1.7
 c_step = 0.01
 
-teta_min = 1 # Adjust as per your range of angles
-teta_max = 10
+teta_min = -6# Adjust as per your range of angles
+teta_max = -3
 teta_step = 0.01
 
 # Loop through c values from c_min to c_max
@@ -312,7 +311,7 @@ while c <= c_max:
         else:
             print("Maximum iterations reached without convergence.")
 
-        Cp = (r/R * (tip_speed * (1-a)**2 *Ct * sigma)) / (F * math.sin(phi) ** 2)  # Call your function to calculate Cp based on c and angle
+        Cp = (r/R)* ((tip_speed * (1-a)**2 *Ct * sigma) / (math.sin(phi)**2))  # Call your function to calculate Cp based on c and angle
         
         # Check if this Cp is larger than the previous maximum Cp
         if Cp > max_Cp:
