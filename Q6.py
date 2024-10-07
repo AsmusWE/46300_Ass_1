@@ -201,7 +201,7 @@ def p_t (rho, Vrel, c, Ct):
     p_t = 1/2 * rho * Vrel**2 * c * Ct
     
     return p_t
-
+"""
 # Constants and parameters
 r = 80.14                   # radius at which we're optimizing (m)
 R = 89.17                   # total blade length (m)
@@ -325,81 +325,17 @@ while c <= c_max:
 
 # Print or return the results
 print(f"The maximum Cp is {max_Cp:.4f}, and it occurs at c = {best_c:.4f} and angle = {best_teta:.4f}")
-
-
-
-
 """
 
-#Variable deciding whether or not to use the madsen way or the Glauert way
-madsen = 1
-
-# Iteration loop
-iteration = 0
-while iteration < max_iterations:
-    # Save the current values of a and a_prime
-    a_old = a
-    a_prime_old = a_prime
-    
-    # Calculate the flow angle phi
-    phi = flow_angle(V0, omega, r, a, a_prime)
-    
-    # Calculate the angle of attack
-    alpha_local = angle_of_attack(phi, teta, beta)
-    
-    # Calculate the solidity
-    sigma = solidity(c, B, r)
-    
-    # Calculate C_n and C_t
-    Cn = C_n(C_l, C_d, phi)
-    Ct = C_t(C_l, C_d, phi)
-    
-    # Calculate Prandtl's tip loss factor
-    F = tip_loss_factor(B, R, r, phi)
-    
-    # Calculate the thrust coefficient 
-    dCT = thrust_coefficient(Cn, sigma, F, phi)
-    
-  
-    # Apply Glauert correction for a
-    if a_old < 1/3:
-        a_temp = dCT / (4 * (1 - a_old))
-    else:
-        if madsen == 0 :
-            a_temp = dCT / (4 * (1 - 0.25 * (5 - 3 * a_old) * a_old))
-        else:
-            a_temp = 0.246 * dCT + 0.0586 * dCT**2 + 0.0883 * dCT**3
-    
-    # Apply under-relaxation
-    a = f * a_temp + (1 - f) * a_old
-    
-    # Apply correction for a_prime
-    a_prime_temp = (Ct * sigma / (4 * F * math.sin(phi) * math.cos(phi))) * (1 + a_prime_old)
-    a_prime = f * a_prime_temp + (1 - f) * a_prime_old
-    
-    # Check convergence
-    error_a = abs(a - a_old)
-    error_a_prime = abs(a_prime - a_prime_old)
-    
-    # If both errors are below the threshold, stop the loop
-    if error_a < epsilon and error_a_prime < epsilon:
-        print(f"Converged after {iteration} iterations.")
-        break
-    
-    iteration += 1
-else:
-    print("Maximum iterations reached without convergence.")
-
-# Final values of a and a_prime, rounded to 3 decimals
-print(f"a = {a:.3f}, a_prime = {a_prime:.3f}")
-print(f"F = {F:.3f}")
-"""
 
 
 chords = np.arange(0, 3, 0.5)
 theta_p6 =  np.arange(-4, 4, 1)
 
+
+Vo = 10
 r6 = 80.14
+R = 89.17 
 beta6 = -2.28
 tsr6 = 8
 omega6 = (tsr6 * Vo) / R  # Calculate omega for the current tip speed ratio
@@ -451,7 +387,7 @@ def BEM2(Vo, omega, theta_p, c6):
 
 # Nested for loop to go over each value combination of omega and theta_p
 for j, c in enumerate(chords):
-    for i, theta in enumerate(theta_p):
+    for i, theta in enumerate(theta_p6):
         # Loop through each blade element
         a, a_prime, phi, Ct, sigma, F = BEM2(Vo, omega6, theta, c)  # Assume BEM function returns [pn, pt]
         test = (r6/R) * ((tsr6 * (1-a)**2 * Ct * sigma)/ (np.sin(phi)**2))
