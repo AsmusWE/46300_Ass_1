@@ -394,3 +394,73 @@ else:
 print(f"a = {a:.3f}, a_prime = {a_prime:.3f}")
 print(f"F = {F:.3f}")
 """
+
+
+chords = np.arange(0, 3, 0.5)
+theta_p6 =  np.arange(-4, 4, 1)
+
+r6 = 80.14
+beta6 = -2.28
+tsr6 = 8
+omega6 = (tsr6 * Vo) / R  # Calculate omega for the current tip speed ratio
+thick6 = 24.10
+C_P6_max = 0.0
+c_at_max = 0.0
+theta_at_max = 0.0
+
+def BEM2(Vo, omega, theta_p, c6):
+    a, a_prime = 0.0, 0.0  # Step 1: Re-initialize a and a' for each iteration
+    icount = 0  # Initialize iteration counter
+    k = 0  # Loop control variable
+    
+    while k == 0:
+        icount = icount + 1
+        # Step 2: Compute the flowangle φ from
+        phi = compute_flow_angle(a, a_prime, Vo, omega6, r6)
+        # Step 3: Compute the local angle of attack by subtracting the twist and global pitch from the flow angle
+        alpha = math.degrees(phi) - (beta6 + theta_p)  # Angle of attack
+        # Step 4: Interpolate the Cl (α) and Cd(α)
+        Cl, Cd, Cm = force_coeffs_10MW(alpha,thick6,aoa_tab,cl_tab,cd_tab,cm_tab)
+        # Step 5: Compute Cn and Ct 
+        Cn, Ct = compute_aero_forces(Cl, Cd, phi)
+        # Step 6: Compute the local thrust coefficient
+        F = prandtl_tip_loss_factor(B, R, r6, phi)
+        sigma = compute_solidity(B, c6, r6)
+        ## Updating a using Glauert correction
+        dC_T = compute_thrust_coefficient(a, phi, Cn, sigma, F)
+        # Step 7: Update a n and a’ n
+        a_new = update_a(a, f, dC_T)
+        #a_new = 0.246 * dC_T + 0.0586 * dC_T**2 + 0.0883 * dC_T**3
+        a_prime_new = update_a_prime(a_prime, f, Ct, sigma, phi, F)
+        # Step 8: If ǀan- an-1ǀ and ǀa’ n- a’ n-1ǀ larger than ε go back and recalculate
+        if np.abs(a_new - a) < epsilon  and np.abs(a_prime_new - a_prime) < epsilon:
+            k = 1  # Set k to 1 to exit the loop
+        else:
+            k = 0  # Set k to 0 to cotinue the loop
+            
+        # Check for maximum iterations
+        if icount > 1000:
+            print(f"Not converged for radius {r} with c {c} and beta {beta}.")
+            k = 1  # Exit the loop if max iterations reached
+        a = a_new
+        a_prime = a_prime_new
+    
+
+    return a, a_prime, phi, Ct, sigma, F
+
+
+# Nested for loop to go over each value combination of omega and theta_p
+for j, c in enumerate(chords):
+    for i, theta in enumerate(theta_p):
+        # Loop through each blade element
+        a, a_prime, phi, Ct, sigma, F = BEM2(Vo, omega6, theta, c)  # Assume BEM function returns [pn, pt]
+        test = (r6/R) * ((tsr6 * (1-a)**2 * Ct * sigma)/ (np.sin(phi)**2))
+        if test > C_P6_max:
+            C_P6_max = test
+            c_at_max = c
+            theta_at_max = theta
+            
+        
+        
+
+print(f"The maximum CP is: {C_P6_max:.3f}, and it occurs at c = {c_at_max:.3f} and pitch = {theta_at_max:.3f} " )
